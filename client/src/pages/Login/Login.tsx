@@ -1,0 +1,141 @@
+import React, { use, useContext, useEffect, useRef, useState } from 'react';
+import useCheckLogin from './hooks/useCheckLogin';
+import { ServerContext, StoreContext } from '../../App';
+import { IBasePage, PAGES } from '../PageManager';
+import { TError } from '../../services/server/types';
+import Button from '../../components/Button/Button';
+import logo from '../../assets/img/logo/logo.svg';
+import './Login.scss'
+
+const Login: React.FC<IBasePage> = (props: IBasePage) => {
+    const { setPage } = props;
+    const server = useContext(ServerContext);
+    const store = useContext(StoreContext);
+    const loginRef = useRef<HTMLInputElement>(null!);
+    const passwordRef = useRef<HTMLInputElement>(null!);
+    const { isFormValid, error, setError, checkFilled, showError } = useCheckLogin();
+    const [rememberMe, setRememberMe] = useState(false);
+
+    const getGameData = async () => {
+        const allItems = await server.getAllItems();
+        const allClasses = await server.getClasses();
+        store.setItems(allItems!);
+        store.setClasses(allClasses!);
+    };  
+
+    const hideErrorOnInput = () => {
+        setError('');
+        checkFilled(loginRef.current.value, passwordRef.current.value);
+    };
+
+    const clearAuthFields = () => {
+        if (!loginRef.current || !passwordRef.current) {
+            return;
+        }
+        loginRef.current.value = '';
+        passwordRef.current.value = '';
+        checkFilled(loginRef.current.value, passwordRef.current.value);
+    };
+
+    const loginClickHandler = async () => {
+        const login = loginRef.current.value;
+        const password = passwordRef.current.value;
+
+        if (!showError(login, password)) return;
+        const user = await server.login(login, password);
+
+        if (user) {
+            store.setUser(user, rememberMe);
+            await getGameData();
+            setPage(PAGES.LOBBY);
+        }
+    }
+
+    const registrationClickHandler = () => { setPage(PAGES.REGISTRATION) };
+
+    useEffect(() => {
+        const autoLogin = async () => {
+            const token = store.getToken();
+
+            server.showError((err: TError) => {
+                if ([1002, 1005].includes(err.code)) {
+                    setError(err.text);
+                    clearAuthFields();
+                }
+            });
+
+            if (token) {
+                const user = await server.getUserInfo();
+                if (user) {
+                    await getGameData();
+                    setPage(PAGES.LOBBY);
+                } else {
+                    sessionStorage.removeItem('token');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('rememberMe');
+                    store.clearUser();
+                }
+            }
+        };
+
+        autoLogin();
+    }, []);
+
+    return (<div className='login'>
+        <img src={logo} className='logo' />
+        <div className="input-group login-group">
+            <p className='p-login'>логин</p>
+            <input
+                ref={loginRef}
+                type="text"
+                placeholder="ваш логин"
+                onChange={hideErrorOnInput}
+                onKeyUp={() => checkFilled(loginRef.current.value, passwordRef.current.value)}
+                className='input-login'
+                id='test-input-login'
+                autoComplete='off'
+            />
+        </div>
+
+        <div className="input-group password-group">
+            <p className='p-password'>пароль</p>
+            <input
+                ref={passwordRef}
+                type="password"
+                placeholder="ваш пароль"
+                onChange={hideErrorOnInput}
+                onKeyUp={() => checkFilled(loginRef.current.value, passwordRef.current.value)}
+                className='input-password'
+                id='test-input-password'
+                autoComplete='off'
+            />
+        </div>
+
+        <label className='label-remember'>
+            <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className='checkbox-remember'
+                id='test-checkbox-remember'
+            />
+            <span id='test-span-remember' className="span-remember">не выходить из учетной записи</span>
+        </label>
+
+        {error && <p id='test-errors-login' className='p-error'>{error}</p>}
+        <Button
+            onClick={loginClickHandler}
+            isDisabled={!isFormValid}
+            className='button-login'
+            id='test-button-login'
+        />
+        <Button
+            onClick={registrationClickHandler}
+            text='создать учетную запись'
+            className='button-registration'
+            id='test-button-registration'
+        />
+    </div>)
+}
+
+export default Login;
