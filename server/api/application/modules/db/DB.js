@@ -110,6 +110,41 @@ class DB {
     }
 
     // ============ CLASS METHODS ============
+    async getPersonClassById(id) {
+        return await this.query("SELECT * FROM classes WHERE id = ?", [id]);
+    }
+
+    async getAllPersonClasses() {
+        return await this.queryAll("SELECT * FROM classes");
+    }
+
+    async getUserPersonClass(userId, classId) {
+        const character = await this.getCharacterByUserId(userId);
+        if (!character) return null;
+        return this.query(
+            "SELECT * FROM characters_classes WHERE character_id = ? and class_id = ?",
+            [character.id, classId]
+        );
+    }
+
+    async addUserPersonClass(userId, classId) {
+        const character = await this.getCharacterByUserId(userId);
+        if (!character) return false;
+        return this.execute(
+            "INSERT INTO characters_classes (character_id, class_id, selected) VALUES (?, ?, 0)",
+            [character.id, classId]
+        );
+    }
+
+    async clearSelectedUserClasses(userId) {
+        const character = await this.getCharacterByUserId(userId);
+        if (!character) return false;
+        return this.execute(
+            "UPDATE characters_classes SET selected = 0 WHERE character_id = ?",
+            [character.id]
+        );
+    }
+
     async getUserSelectedClassId(userId) {
         const character = await this.getCharacterByUserId(userId);
         if (!character) return null;
@@ -308,6 +343,40 @@ class DB {
 
     async deleteUser(userId) {
         const result = await this.execute("DELETE FROM users WHERE id=?", [userId]);
+        return result.affectedRows > 0;
+    }
+
+    // ============ CHAT METHODS ============
+
+    async getChatHash() {
+        return await this.query("SELECT * FROM hashes WHERE id=1");
+    }
+
+    async updateChatHash(hash) {
+        const result = await this.execute("UPDATE hashes SET chat_hash=? WHERE id=1", [hash]);
+        return result.affectedRows > 0;
+    }
+
+    async addMessage(userId, message) {
+        const result = await this.execute(
+            "INSERT INTO messages (user_id, message, created) VALUES (?,?, now())",
+            [userId, message]
+        );
+        return result.affectedRows > 0;
+    }
+
+    async getMessages() {
+        return this.queryAll(`
+            SELECT u.nickname AS author, m.message AS message,
+                   DATE_FORMAT(m.created, '%Y-%m-%d %H:%i:%s') AS created 
+            FROM messages as m 
+            LEFT JOIN users as u on u.id = m.user_id 
+            ORDER BY m.created DESC
+        `);
+    }
+
+    async deleteUserMessages(userId) {
+        const result = await this.execute("DELETE FROM messages WHERE user_id = ?", [userId]);
         return result.affectedRows > 0;
     }
 

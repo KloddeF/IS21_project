@@ -1,7 +1,7 @@
 const express = require('express');
 const Answer = require('./Answer.js');
 
-function Router(mediator) { 
+function Router(mediator) {
     const router = express.Router();
 
     // ============ USER ROUTES ============
@@ -107,6 +107,55 @@ function Router(mediator) {
             token: req.params.token
         };
         const response = await mediator.get(mediator.getTriggerTypes().GET_ITEMS_DATA, params);
+        res.json(Answer.response(response));
+    });
+
+    //BUY_CLASS
+    router.get('/buyClass{/:token}{/:classId}', async (req, res) => {
+        const params = {
+            token: req.params.token,
+            classId: req.params.classId
+        };
+        const response = await mediator.call(mediator.getEventTypes().BUY_CLASS, params);
+        res.json(Answer.response(response));
+    });
+
+    //SELECT_CLASS
+    router.get('/selectClass{/:token}{/:classId}', async (req, res) => {
+        const params = {
+            token: req.params.token,
+            classId: req.params.classId
+        };
+        const response = await mediator.call(mediator.getEventTypes().SELECT_CLASS, params);
+        res.json(Answer.response(response));
+    });
+
+    //GET_CLASSES
+    router.get('/getClasses{/:token}', async (req, res) => {
+        const params = {
+            token: req.params.token
+        };
+        const response = await mediator.get(mediator.getTriggerTypes().GET_CLASSES, params);
+        res.json(Answer.response(response));
+    });
+
+    //GET_MESSAGES
+    router.get('/getMessages{/:token}{/:hash}', async (req, res) => {
+        const params = {
+            token: req.params.token,
+            hash: req.params.hash
+        };
+        const response = await mediator.get(mediator.getTriggerTypes().GET_MESSAGES, params);
+        res.json(Answer.response(response));
+    });
+
+    //SEND_MESSAGE
+    router.get('/sendMessage{/:token}{/:message}', async (req, res) => {
+        const params = {
+            token: req.params.token,
+            message: req.params.message
+        };
+        const response = await mediator.call(mediator.getEventTypes().SEND_MESSAGE, params);
         res.json(Answer.response(response));
     });
 
