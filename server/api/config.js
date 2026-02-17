@@ -32,6 +32,11 @@ class CONFIG {
         SELL_ITEM: 'SELL_ITEM',
         USE_ARROW: 'USE_ARROW',
         USE_POTION: 'USE_POTION',
+        //chat events
+        SEND_MESSAGE: 'SEND_MESSAGE',
+        //shop events
+        BUY_CLASS: 'BUY_CLASS',
+        SELECT_CLASS: 'SELECT_CLASS'
     }
 
     //триггеры
@@ -41,6 +46,10 @@ class CONFIG {
         GET_RATING_TABLE: 'GET_RATING_TABLE',
         //items triggers
         GET_ITEMS_DATA: 'GET_ITEMS_DATA',
+        //chat triggers
+        GET_MESSAGES: 'GET_MESSAGES',
+        //shop triggers
+        GET_CLASSES: 'GET_CLASSES'
     }
 }
 

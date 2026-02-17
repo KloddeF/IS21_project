@@ -6,6 +6,8 @@ const Answer = require('./application/router/Answer.js');
 const UserManager = require('./application/modules/user/UserManager.js');
 const ItemsManager = require('./application/modules/items/ItemsManager.js');
 const DB = require('./application/modules/db/DB.js');
+const ChatManager = require('./application/modules/chat/chatManager.js');
+const ClassHandler = require('./application/modules/class/classHandler.js');
 
 const app = express();
 
@@ -30,6 +32,8 @@ const mediator = new Mediator({
 // Создаем менеджеры
 new UserManager({ mediator, db });
 new ItemsManager({ mediator, db });
+new ChatManager({ mediator, db });
+new ClassHandler({ mediator, db });
 
 // Создаем роутер
 const router = new Router(mediator);
